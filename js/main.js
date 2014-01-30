@@ -1,5 +1,5 @@
 var cube, c, f, a, animation,
-    center     = [100, 100],
+    center     = [100, 100, 0],
     fridge     = 100,
     radius     = 100,
     sides      = 5,
@@ -22,7 +22,7 @@ function Figure(type, sides, r){
     this.currAngle = 0;
     this.currRotationSpeed = 1;
     this.scaleFactor = 1;
-    this.currPos = [center[0], center[1]];
+    this.currPos = [center[0], center[1], center[2]];
     this.radius = r;
 }
 Figure.prototype.rebuildCircleFigure = function() { //old method
@@ -36,7 +36,7 @@ Figure.prototype.rebuildCircleFigure = function() { //old method
         this.dots.push(oneDot);
     };
     this.toCenter();
-    this.rotate(this.currAngle, true);
+    this.rotate2D(this.currAngle, true);
 }
 Figure.prototype.draw = function() {
     ctx.beginPath("figure");
@@ -57,8 +57,9 @@ Figure.prototype.drawDots = function() {
 }
 Figure.prototype.toCenter = function() {
     for (var i = 0; i < this.dots.length; i++) {
-        this.dots[i][0] = this.dots[i][0] + center[0];
-        this.dots[i][1] = this.dots[i][1] + center[1];
+        for (var j = 0; j < this.dots[0].length; j++) {
+            this.dots[i][j] = this.dots[i][j] + center[j];
+        };
     };
 }
 Figure.prototype.toZero = function() {
@@ -73,7 +74,7 @@ Figure.prototype.toCurrPos = function() {
         this.dots[i][1] = this.dots[i][1] + this.currPos[1];
     };
 }
-Figure.prototype.rotate = function(alpha, skip) { //if skip - currAngle doesnt change 
+Figure.prototype.rotate2D = function(alpha, skip) { //if skip - currAngle doesnt change 
     for (var i = 0; i < this.dots.length; i++) {
         var temp = [], 
             al, M = [[],[]];
@@ -90,6 +91,29 @@ Figure.prototype.rotate = function(alpha, skip) { //if skip - currAngle doesnt c
     if (!skip) this.currAngle = this.currAngle + alpha;
     if (this.currAngle>360) this.currAngle = this.currAngle - 360;
 }
+Figure.prototype.rotate3D = function(alpha, d, skip) { //d - по какой оси
+    var ca = Math.cos(dtr(alpha)),
+        sa = Math.sin(dtr(alpha)),
+        Mx = [[  1,  0,  0],
+              [  0, ca,-sa],
+              [  0, sa, ca]],
+        My = [[ ca,  0, sa],
+              [  0,  1,  0],
+              [-sa,  0, ca]],
+        Mz = [[ ca,-sa,  0],
+              [ sa, ca,  0],
+              [  0,  0,  1]];
+    var M = [[],[],[]];
+    if (d == 0) M = Mx; else if (d == 1) M = My; else if (d == 2) M = Mz;
+    for (var j = 0; j < this.dots.length; j++) {
+        for (var i = 0; i < this.dots[0].length; i++) {
+            var temp = [];
+            this.dots[j][i] = this.dots[j][i] - this.currPos[i];
+            temp[i] = this.dots[j][0]*M[0][i]+this.dots[j][1]*M[1][i]+this.dots[j][2]*M[2][i];
+            this.dots[j][i] = temp[i] + this.currPos[i];
+        };
+    };
+};
 Figure.prototype.scale = function(x) {
     this.toZero();
     scale(this.dots, 1/this.scaleFactor*x);
@@ -154,11 +178,28 @@ function createM(z, scaling){ // 1/z - угол прохождения
         figure.dots.push(dot);
     }
     figure.toCenter();
-    figure.rotate(180);
+    figure.rotate2D(180);
     shift(figure.dots, 50, 1);
     figures.push(figure);
 }
 
+function createCube(){
+    var cubic = [[-50,-50,-50],
+                 [-50,-50, 50],
+                 [-50, 50,-50],
+                 [-50, 50, 50],
+                 [ 50,-50,-50],
+                 [ 50,-50, 50],
+                 [ 50, 50,-50],
+                 [ 50, 50, 50]],
+        kyb = new Figure(2);
+    for (var i = 0; i < cubic.length; i++) {
+        kyb.dots.push(cubic[i])
+    };
+    kyb.toCenter();
+    figures.push(kyb);
+
+}
 function addRandomFigure(){
     var sides = getRandomInt(3,7),
         r     = getRandomInt(50,200);
@@ -226,6 +267,13 @@ function draw(){//глобальная отрисовка
     };
 }
 
+function drawDots(){//глобальная отрисовка по точкам
+    clearCanvas();
+    for (var i = 0; i < figures.length; i++) {
+        figures[i].drawDots();
+    };
+}
+
 function stopAnimation(){
     clearInterval(animation);
 }
@@ -235,8 +283,17 @@ function launchAnimation(){
     animation = setInterval(function(){
         draw();
         for (var i = 0; i < figures.length; i++) {
-            figures[i].rotate(figures[i].currRotationSpeed);
+            figures[i].rotate2D(figures[i].currRotationSpeed);
         };
+    },1000/fps);
+}
+
+function launchAnimationCube(){
+    clearInterval(animation);
+    animation = setInterval(function(){
+        drawDots();
+        figures[0].rotate3D(1,0);
+        figures[0].rotate3D(1,1);
     },1000/fps);
 }
 
@@ -274,13 +331,15 @@ function initialize(){
     var boom = window.location.hash.substr(1) || 3;
     if (boom == 'bonus') {
         createM(1000, 100);
+    } else if (boom == 'cube') {
+        createCube();
     } else {
         buildCircleFigure(boom, r);
         buildCircleFigure(5, 140);
         figures[1].shift(200, 0);
         figures[1].shift(300, 1);
     };
-    launchAnimation();
+    launchAnimationCube();
     addElementsSelect();
 }
 
