@@ -22,7 +22,8 @@ function Figure(type, sides, r){
     this.currAngle = 0;
     this.currRotationSpeed = 1;
     this.scaleFactor = 1;
-    this.currPos = [center[0], center[1], center[2]];
+    this.ancorPoint = [center[0], center[1], center[2]];
+    this.currPos = [this.ancorPoint[0], this.ancorPoint[1], this.ancorPoint[2]];
     this.radius = r;
 }
 Figure.prototype.rebuildCircleFigure = function() { //old method
@@ -64,14 +65,16 @@ Figure.prototype.toCenter = function() {
 }
 Figure.prototype.toZero = function() {
     for (var i = 0; i < this.dots.length; i++) {
-        this.dots[i][0] = this.dots[i][0] - this.currPos[0];
-        this.dots[i][1] = this.dots[i][1] - this.currPos[1];
+        for (var j = 0; j < this.dots[0].length; j++) {
+            this.dots[i][j] = this.dots[i][j] - this.currPos[j];
+        };
     };
 }
 Figure.prototype.toCurrPos = function() {
     for (var i = 0; i < this.dots.length; i++) {
-        this.dots[i][0] = this.dots[i][0] + this.currPos[0];
-        this.dots[i][1] = this.dots[i][1] + this.currPos[1];
+        for (var j = 0; j < this.dots[0].length; j++) {
+            this.dots[i][j] = this.dots[i][j] + this.currPos[j];
+        };
     };
 }
 Figure.prototype.rotate2D = function(alpha, skip) { //if skip - currAngle doesnt change 
@@ -108,9 +111,10 @@ Figure.prototype.rotate3D = function(alpha, d, skip) { //d - по какой о�
     for (var j = 0; j < this.dots.length; j++) {
         for (var i = 0; i < this.dots[0].length; i++) {
             var temp = [];
-            this.dots[j][i] = this.dots[j][i] - this.currPos[i];
-            temp[i] = this.dots[j][0]*M[0][i]+this.dots[j][1]*M[1][i]+this.dots[j][2]*M[2][i];
-            this.dots[j][i] = temp[i] + this.currPos[i];
+            //this.dots[j][i] = this.dots[j][i] - this.currPos[i];
+            //temp[i]//
+            this.dots[j][i] = this.dots[j][0]*M[0][i]+this.dots[j][1]*M[1][i]+this.dots[j][2]*M[2][i];
+            //this.dots[j][i] = temp[i] + this.currPos[i];
         };
     };
 };
@@ -196,9 +200,8 @@ function createCube(){
     for (var i = 0; i < cubic.length; i++) {
         kyb.dots.push(cubic[i])
     };
-    kyb.toCenter();
+    //kyb.toCenter();
     figures.push(kyb);
-
 }
 function addRandomFigure(){
     var sides = getRandomInt(3,7),
@@ -291,9 +294,11 @@ function launchAnimation(){
 function launchAnimationCube(){
     clearInterval(animation);
     animation = setInterval(function(){
-        drawDots();
+        figures[0].toZero();
         figures[0].rotate3D(1,0);
-        figures[0].rotate3D(1,1);
+        figures[0].toCenter();
+        //figures[0].rotate3D(1,1);
+        drawDots();
     },1000/fps);
 }
 
