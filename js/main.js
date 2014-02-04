@@ -105,12 +105,13 @@ Figure.prototype.rotate3D = function(alpha, d, skip) { //d - по какой о�
               [  0,  0,  1]];
     var M = [[],[],[]];
     if (d == 0) M = Mx; else if (d == 1) M = My; else if (d == 2) M = Mz;
-    for (var j = 0; j < this.dots.length; j++) {
-        for (var i = 0; i < this.dots[0].length; i++) {
+    for (var i = 0; i < this.dots.length; i++) {
+        for (var j = 0; j < this.dots[0].length; j++) {
             var temp = [];
-            this.dots[j][i] = this.dots[j][i] - this.currPos[i];
-            temp[i] = this.dots[j][0]*M[0][i]+this.dots[j][1]*M[1][i]+this.dots[j][2]*M[2][i];
-            this.dots[j][i] = temp[i] + this.currPos[i];
+
+            this.dots[i][j] = this.dots[i][j] - this.currPos[j];
+            temp[j] = this.dots[i][0]*M[0][j]+this.dots[i][1]*M[1][j]+this.dots[i][2]*M[2][j];
+            this.dots[i][j] = temp[j] + this.currPos[j];
         };
     };
 };
