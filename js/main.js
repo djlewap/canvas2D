@@ -22,8 +22,8 @@ function Figure(type, sides, r){
     this.currAngle = 0;
     this.currRotationSpeed = 1;
     this.scaleFactor = 1;
-    this.ancorPoint = [center[0], center[1], center[2]];
-    this.currPos = [this.ancorPoint[0], this.ancorPoint[1], this.ancorPoint[2]];
+    this.ancorPoint = [0, 0, 0];
+    this.currPos = [0, 0, 0];
     this.radius = r;
 }
 Figure.prototype.rebuildCircleFigure = function() { //old method
@@ -56,18 +56,28 @@ Figure.prototype.drawDots = function() {
     };
     ctx.closePath();
 }
-Figure.prototype.toCenter = function() {
-    for (var i = 0; i < this.dots.length; i++) {
-        for (var j = 0; j < this.dots[0].length; j++) {
-            this.dots[i][j] = this.dots[i][j] + center[j];
+Figure.prototype.toCenter = function(currPosNoChange) {
+    if (this.currPos.toString()==center.toString()) {
+        console.log('Figure is already at the center of canvas');
+    } else {    
+        for (var i = 0; i < this.dots.length; i++) {
+            for (var j = 0; j < this.dots[0].length; j++) {
+                this.dots[i][j] = this.dots[i][j] + center[j];
+            };
+            if (!currPosNoChange) {
+                this.currPos = [center[0], center[1], center[2]];
+            };
         };
     };
 }
-Figure.prototype.toZero = function() {
+Figure.prototype.toZero = function(currPosNoChange) {
     for (var i = 0; i < this.dots.length; i++) {
         for (var j = 0; j < this.dots[0].length; j++) {
             this.dots[i][j] = this.dots[i][j] - this.currPos[j];
         };
+    };
+    if (!currPosNoChange) {
+        this.currPos = [0, 0, 0];
     };
 }
 Figure.prototype.toCurrPos = function() {
@@ -107,17 +117,44 @@ Figure.prototype.rotate3D = function(alpha, d, skip) { //d - по какой о�
               [ sa, ca,  0],
               [  0,  0,  1]];
     var M = [[],[],[]];
-    if (d == 0) M = Mx; else if (d == 1) M = My; else if (d == 2) M = Mz;
+    if (d == 0) {
+        M = Mx;
+    } else if (d == 1) {
+        M = My;
+    } else if (d == 2)  {
+        M = Mz;
+    };
+    this.toZero();
+
+
+
+
+
     for (var i = 0; i < this.dots.length; i++) {
-        for (var j = 0; j < this.dots[0].length; j++) {
-            var temp = [];
+
+        var temp = this.dots[i];
+
+        // this.dots[i][0] = temp[0]*M[0][0]+temp[1]*M[1][0]+temp[2]*M[2][0];
+        // this.dots[i][1] = temp[0]*M[0][1]+temp[1]*M[1][1]+temp[2]*M[2][1];
+        // this.dots[i][2] = temp[0]*M[0][2]+temp[1]*M[1][2]+temp[2]*M[2][2];
+
+        // this.dots[i][0] = M[0][0]*temp[0]+M[0][1]*temp[1]+M[0][2]*temp[2];
+        // this.dots[i][1] = M[1][0]*temp[1]+M[1][1]*temp[1]+M[1][2]*temp[1];
+        // this.dots[i][2] = M[2][0]*temp[2]+M[2][1]*temp[2]+M[2][2]*temp[2];
+
+        this.dots[i][0] = M[0][0]*temp[0]+M[0][1]*temp[1]+M[0][2]*temp[2];
+        this.dots[i][1] = M[1][0]*temp[0]+M[1][1]*temp[1]+M[1][2]*temp[2];
+        this.dots[i][2] = M[2][0]*temp[0]+M[2][1]*temp[1]+M[2][2]*temp[2];
+
+        //for (var j = 0; j < this.dots[0].length; j++) {
             //this.dots[j][i] = this.dots[j][i] - this.currPos[i];
             //temp[i]//
-            this.dots[j][i] = this.dots[j][0]*M[0][i]+this.dots[j][1]*M[1][i]+this.dots[j][2]*M[2][i];
+            //this.dots[j][i] = temp[j][0]*M[0][i]+temp[j][1]*M[1][i]+temp[j][2]*M[2][i];
             //this.dots[j][i] = temp[i] + this.currPos[i];
 
-        };
+        //};
     };
+    this.toCenter();
 };
 Figure.prototype.scale = function(x) {
     this.toZero();
@@ -201,7 +238,7 @@ function createCube(){
     for (var i = 0; i < cubic.length; i++) {
         kyb.dots.push(cubic[i])
     };
-    //kyb.toCenter();
+    kyb.toCenter();
     figures.push(kyb);
 }
 function addRandomFigure(){
@@ -294,10 +331,12 @@ function launchAnimation(){
 
 function launchAnimationCube(){
     clearInterval(animation);
+    //figures[0].toCenter();
     animation = setInterval(function(){
-        figures[0].toZero();
-        figures[0].rotate3D(1,0);
-        figures[0].toCenter();
+        //figures[0].toZero();
+        figures[0].rotate3D(10,2);
+        //figures[0].rotate3D(20,1);
+        //figures[0].toCenter();
         //figures[0].rotate3D(1,1);
         drawDots();
     },1000/fps);
