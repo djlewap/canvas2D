@@ -39,13 +39,33 @@ Figure.prototype.rebuildCircleFigure = function() { //old method
     this.toCenter();
     this.rotate2D(this.currAngle, true);
 }
+
+
 Figure.prototype.draw = function() {
     ctx.beginPath("figure");
     ctx.moveTo(this.dots[0][0], this.dots[0][1]);
-    for (var i = 1; i < this.dots.length; i++) {
-        ctx.lineTo(this.dots[i][0], this.dots[i][1]);
+    if (this.type == 2) {
+        ctx.lineTo(this.dots[1][0], this.dots[1][1]);
+        ctx.lineTo(this.dots[3][0], this.dots[3][1]);
+        ctx.lineTo(this.dots[2][0], this.dots[2][1]);
+        ctx.lineTo(this.dots[0][0], this.dots[0][1]);
+        ctx.lineTo(this.dots[4][0], this.dots[4][1]);
+        ctx.lineTo(this.dots[5][0], this.dots[5][1]);
+        ctx.lineTo(this.dots[7][0], this.dots[7][1]);
+        ctx.lineTo(this.dots[6][0], this.dots[6][1]);
+        ctx.lineTo(this.dots[4][0], this.dots[4][1]);
+        ctx.moveTo(this.dots[5][0], this.dots[5][1]);
+        ctx.lineTo(this.dots[1][0], this.dots[1][1]);
+        ctx.moveTo(this.dots[7][0], this.dots[7][1]);
+        ctx.lineTo(this.dots[3][0], this.dots[3][1]);
+        ctx.moveTo(this.dots[6][0], this.dots[6][1]);
+        ctx.lineTo(this.dots[2][0], this.dots[2][1]);
+    } else {
+        for (var i = 1; i < this.dots.length; i++) {
+            ctx.lineTo(this.dots[i][0], this.dots[i][1]);
+        };
+        ctx.lineTo(this.dots[0][0],this.dots[0][1]);
     };
-    ctx.lineTo(this.dots[0][0],this.dots[0][1]);
     ctx.stroke();
     ctx.closePath();
 }
@@ -57,9 +77,9 @@ Figure.prototype.drawDots = function() {
     ctx.closePath();
 }
 Figure.prototype.toCenter = function(currPosNoChange) {
-    if (this.currPos.toString()==center.toString()) {
-        console.log('Figure is already at the center of canvas');
-    } else {    
+    //if (this.currPos.toString()==center.toString()) {
+    //    console.log('Figure is already at the center of canvas');
+    //} else {    
         for (var i = 0; i < this.dots.length; i++) {
             for (var j = 0; j < this.dots[0].length; j++) {
                 this.dots[i][j] = this.dots[i][j] + center[j];
@@ -68,7 +88,7 @@ Figure.prototype.toCenter = function(currPosNoChange) {
                 this.currPos = [center[0], center[1], center[2]];
             };
         };
-    };
+    //};
 }
 Figure.prototype.toZero = function(currPosNoChange) {
     for (var i = 0; i < this.dots.length; i++) {
@@ -105,18 +125,23 @@ Figure.prototype.rotate2D = function(alpha, skip) { //if skip - currAngle doesnt
     if (this.currAngle>360) this.currAngle = this.currAngle - 360;
 }
 Figure.prototype.rotate3D = function(alpha, d, skip) { //d - по какой оси
-    var ca = Math.cos(dtr(alpha)),
-        sa = Math.sin(dtr(alpha)),
-        Mx = [[  1,  0,  0],
-              [  0, ca,-sa],
-              [  0, sa, ca]],
-        My = [[ ca,  0, sa],
-              [  0,  1,  0],
-              [-sa,  0, ca]],
-        Mz = [[ ca,-sa,  0],
-              [ sa, ca,  0],
-              [  0,  0,  1]];
     var M = [[],[],[]];
+    var Mx = [[],[],[]];
+    var My = [[],[],[]];
+    var Mz = [[],[],[]];
+    var ca, sa, al;
+    ca = Math.cos(dtr(alpha));
+    sa = Math.sin(dtr(alpha));
+    Mx = [[  1,  0,  0],
+          [  0, Math.cos(dtr(alpha)),-Math.sin(dtr(alpha))],
+          [  0, Math.sin(dtr(alpha)), Math.cos(dtr(alpha))]];
+    My = [[ Math.cos(dtr(alpha)),  0, Math.sin(dtr(alpha))],
+          [  0,  1,  0],
+          [-Math.sin(dtr(alpha)),  0, Math.cos(dtr(alpha))]];
+    Mz = [[ Math.cos(dtr(alpha)),-1*Math.sin(dtr(alpha)),  0],
+          [ Math.sin(dtr(alpha)), Math.cos(dtr(alpha)),  0],
+          [  0,  0,  1]];
+    
     if (d == 0) {
         M = Mx;
     } else if (d == 1) {
@@ -124,40 +149,20 @@ Figure.prototype.rotate3D = function(alpha, d, skip) { //d - по какой о�
     } else if (d == 2)  {
         M = Mz;
     };
-    this.toZero();
+    this.toZero(true);
 
+    for (var i = 0; i < figures[0].dots.length; i++) {
 
+        var buf = figures[0].dots[i].slice();
 
-
-
-    for (var i = 0; i < this.dots.length; i++) {
-
-        var temp = this.dots[i];
-
-        // this.dots[i][0] = temp[0]*M[0][0]+temp[1]*M[1][0]+temp[2]*M[2][0];
-        // this.dots[i][1] = temp[0]*M[0][1]+temp[1]*M[1][1]+temp[2]*M[2][1];
-        // this.dots[i][2] = temp[0]*M[0][2]+temp[1]*M[1][2]+temp[2]*M[2][2];
-
-        // this.dots[i][0] = M[0][0]*temp[0]+M[0][1]*temp[1]+M[0][2]*temp[2];
-        // this.dots[i][1] = M[1][0]*temp[1]+M[1][1]*temp[1]+M[1][2]*temp[1];
-        // this.dots[i][2] = M[2][0]*temp[2]+M[2][1]*temp[2]+M[2][2]*temp[2];
-
-        this.dots[i][0] = M[0][0]*temp[0]+M[0][1]*temp[1]+M[0][2]*temp[2];
-        this.dots[i][1] = M[1][0]*temp[0]+M[1][1]*temp[1]+M[1][2]*temp[2];
-        this.dots[i][2] = M[2][0]*temp[0]+M[2][1]*temp[1]+M[2][2]*temp[2];
-
-        //for (var j = 0; j < this.dots[0].length; j++) {
-            //this.dots[j][i] = this.dots[j][i] - this.currPos[i];
-            //temp[i]//
-            //this.dots[j][i] = temp[j][0]*M[0][i]+temp[j][1]*M[1][i]+temp[j][2]*M[2][i];
-            //this.dots[j][i] = temp[i] + this.currPos[i];
-
-        //};
+        figures[0].dots[i][0] = M[0][0] * buf[0] + M[0][1] * buf[1] + M[0][2] * buf[2];
+        figures[0].dots[i][1] = M[1][0] * buf[0] + M[1][1] * buf[1] + M[1][2] * buf[2];
+        figures[0].dots[i][2] = M[2][0] * buf[0] + M[2][1] * buf[1] + M[2][2] * buf[2];
     };
-    this.toCenter();
+    this.toCurrPos();
 };
 Figure.prototype.scale = function(x) {
-    this.toZero();
+    this.toZero(true);
     scale(this.dots, 1/this.scaleFactor*x);
     this.scaleFactor = x;
     this.toCurrPos();
@@ -264,18 +269,24 @@ function getRandomArbitary(min, max){
 // ===================================================
 
 function setSpeed(){
+    var isCube;
+    if (figures[currFigure].type == 2) {isCube = true};
     clearInterval(a);
     figures[currFigure].currRotationSpeed = Number(document.getElementById('speed').value);
-    launchAnimation();
+    launchAnimation(isCube);
 }
 
 function setScale(){
+    var isCube;
+    if (figures[currFigure].type == 2) {isCube = true};
     var temp = Number(document.getElementById('scale').value);
     figures[currFigure].scale(temp);
-    launchAnimation();
+    launchAnimation(isCube);
 }
 
 function setShift(d){ //direction
+    var isCube;
+    if (figures[currFigure].type == 2) {isCube = true};
     if (d==0) {
         var temp = Number(document.getElementById('shiftX').value);
     } else if (d==1) {
@@ -283,7 +294,7 @@ function setShift(d){ //direction
     };
     
     figures[currFigure].shift(temp, d);
-    launchAnimation();                
+    launchAnimation(isCube);                
 }
 
 function setSidesNum(){
@@ -319,27 +330,25 @@ function stopAnimation(){
     clearInterval(animation);
 }
 
-function launchAnimation(){
+function launchAnimation(isCube){
     clearInterval(animation);
     animation = setInterval(function(){
         draw();
-        for (var i = 0; i < figures.length; i++) {
-            figures[i].rotate2D(figures[i].currRotationSpeed);
+        if (isCube) {
+            //drawDots();
+            figures[0].rotate3D(2,1);
+            figures[0].rotate3D(figures[0].currRotationSpeed, 2);
+        } else {
+            //draw();
+            for (var i = 0; i < figures.length; i++) {
+                figures[i].rotate2D(figures[i].currRotationSpeed);
+            };
         };
     },1000/fps);
 }
 
 function launchAnimationCube(){
-    clearInterval(animation);
-    //figures[0].toCenter();
-    animation = setInterval(function(){
-        //figures[0].toZero();
-        figures[0].rotate3D(10,2);
-        //figures[0].rotate3D(20,1);
-        //figures[0].toCenter();
-        //figures[0].rotate3D(1,1);
-        drawDots();
-    },1000/fps);
+
 }
 
 function addElementsSelect(){
@@ -361,9 +370,12 @@ function addElementsSelect(){
 }
 
 function initialize(){
+    var isCube;
     a=document.getElementById("example"),ctx=a.getContext("2d");
     a.height=window.innerHeight;
     a.width=window.innerWidth; 
+    document.body.style.marging = 0;
+    document.body.style.padding = 0;
     center[0] = a.width/2;
     center[1] = a.height/2;
     document.getElementById('shiftX').min = 0;
@@ -378,13 +390,14 @@ function initialize(){
         createM(1000, 100);
     } else if (boom == 'cube') {
         createCube();
+        isCube = true;
     } else {
         buildCircleFigure(boom, r);
         buildCircleFigure(5, 140);
         figures[1].shift(200, 0);
         figures[1].shift(300, 1);
     };
-    launchAnimationCube();
+    launchAnimation(isCube);
     addElementsSelect();
 }
 
